@@ -6,6 +6,7 @@ import logger from "./src/config/logger.js";
 import config from "./src/config/index.js";
 
 import { reqLogger } from "./src/middlewares/req.middleware.js";
+import { corsMiddleware } from "./src/middlewares/cors.middleware.js";
 
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(reqLogger);
+app.use(corsMiddleware);
 
 app.get("/", (req, res) => {
      res.send("Hello from server.js of user-service");
