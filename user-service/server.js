@@ -3,7 +3,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 import logger from "./src/config/logger.js";
-import config from "./src/config/index.js";
+import {config} from "./src/config/index.js";
 
 import { reqLogger } from "./src/middlewares/req.middleware.js";
 import { corsMiddleware } from "./src/middlewares/cors.middleware.js";

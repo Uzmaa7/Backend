@@ -1,4 +1,4 @@
-import config from "./index.js"
+import {config} from "./index.js"
 import winston from "winston";
 
 
