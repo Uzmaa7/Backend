@@ -1,6 +1,6 @@
 
 import ErrorResponse from "./errorResponse.js";
-import SuccessResponse from './successResponse';
+import SuccessResponse from './successResponse.js';
 
 
 export {
