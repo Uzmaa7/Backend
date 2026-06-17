@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { config } from ".";
+import { config } from "./index.js";
 import logger from "./logger.js";
 
 //Singleton Design Pattern

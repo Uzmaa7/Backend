@@ -18,6 +18,9 @@ const config = {
     OTP_RATE_MAX_PER_HOUR: process.env.OTP_RATE_MAX_PER_HOUR || 5,
     OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET,
 
+    MAIL_SEND: process.env.MAIL_SEND,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+
 }
 
 export {config};
