@@ -8,6 +8,8 @@ import {config} from "./src/config/index.js";
 import { reqLogger } from "./src/middlewares/req.middleware.js";
 import { corsMiddleware } from "./src/middlewares/cors.middleware.js";
 
+import authRoutes from "./src/routes/auth.route.js"
+
 
 const app = express();
 
@@ -16,8 +18,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 app.use(reqLogger);
 app.use(corsMiddleware);
+
+
+app.use("/api/v1/auth", authRoutes);
 
 app.get("/", (req, res) => {
      res.send("Hello from server.js of user-service");
