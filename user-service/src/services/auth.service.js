@@ -3,8 +3,8 @@ import {config} from "../config/index.js"
 import logger from "../config/logger.js"
 import AppError from "../utils/errors/appError.js";
 import bcrypt from "bcrypt";
-import {generateAndStoreOtp} from "../utils/otp.js";
-import { sendOtpEmail } from "../utils/email.js";
+import {generateAndStoreOtp, verifyOtp} from "../utils/otp.js";
+import { sendOtpEmail,  verifyOtpEmail} from "../utils/email.js";
 
 export class AuthService{
     constructor(userRepository){
@@ -41,5 +41,38 @@ export class AuthService{
             throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    async verifyOtp(otp, otpSessionId){
+        try {
+
+            const meta = await verifyOtp(otp, otpSessionId);
+            if(meta === null){
+                throw new AppError("Invalid or expired OTP", StatusCodes.BAD_REQUEST);
+            }
+
+            //user create
+            const user = await this.userRepository.create({
+                firstName: meta.firstName,
+                lastName: meta.lastName,
+                email:meta.email,
+                password:meta.hashedPassword,
+                emailVerified: true,
+            })
+
+            await verifyOtpEmail(meta);
+
+            return user;
+
+
+        } catch (error) {
+            logger.error("Error inside AuthService [verifyOtp]:", error);
+
+            if(error instanceof AppError){
+                throw error;
+            }
+
+            throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
+        }
     }
 }

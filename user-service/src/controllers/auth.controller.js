@@ -55,4 +55,35 @@ export class AuthController {
 
         }
     }
+
+    async verifyOtp(req, res, next){
+        try {
+
+            const {otp} = req.body;
+            const otpSessionId = req.cookies?.otp_session;
+
+            if(!otp || !otpSessionId){
+                throw new AppError("Otp or otpSession is missing", StatusCodes.BAD_REQUEST);
+            }
+
+            const user = await this.authService.verifyOtp(otp, otpSessionId);
+
+            SuccessResponse.data = user;
+            SuccessResponse.message = "User create Successfully";
+
+            return res
+            .clearCookie("otp_session")
+            .status(StatusCodes.CREATED)
+            .json(SuccessResponse)
+
+        } catch (error) {
+            logger.error("Error in AuthController [verifyOtp]:", error);
+            
+            ErrorResponse.error = error;
+
+            return res
+            .status(error.statusCode)
+            .json(ErrorResponse)
+        }
+    }
 }   

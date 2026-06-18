@@ -16,6 +16,7 @@ const config = {
 
     OTP_TTL: process.env.OTP_TTL || 300,
     OTP_RATE_MAX_PER_HOUR: process.env.OTP_RATE_MAX_PER_HOUR || 5,
+    OTP_MAX_VERIFY_ATTEMPTS: process.env.OTP_MAX_VERIFY_ATTEMPTS || 5,
     OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET,
 
     MAIL_SEND: process.env.MAIL_SEND,
