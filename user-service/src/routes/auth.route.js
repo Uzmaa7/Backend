@@ -14,4 +14,6 @@ router.post("/send-otp", (req, res, next) => authController.sendOtp(req, res, ne
 
 router.post("/verify-otp", (req, res, next) => authController.verifyOtp(req, res, next));
 
+router.post("/login", (req, res, next) => authController.login(req, res, next));
+
 export default router;

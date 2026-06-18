@@ -12,6 +12,7 @@ const config = {
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
     DATABASE_URL:process.env.DATABASE_URL,
     REDIS_URL: process.env.REDIS_URL,
+    REDIS_USER_TTL: Number(process.env.REDIS_USER_TTL),
 
 
     OTP_TTL: process.env.OTP_TTL || 300,
@@ -24,7 +25,7 @@ const config = {
 
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
     ACCESS_TOKEN_EXP: process.env.ACCESS_TOKEN_EXP,
-    ACCESS_TOKEN_EXP_Sec: Number(process.env.ACCESS_TOKEN_EXP_Sec),
+    ACCESS_TOKEN_EXP_SEC: Number(process.env.ACCESS_TOKEN_EXP_Sec),
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXP: process.env.REFRESH_TOKEN_EXP,
     REFRESH_TOKEN_EXP_SEC: Number(process.env.REFRESH_TOKEN_EXP_SEC),

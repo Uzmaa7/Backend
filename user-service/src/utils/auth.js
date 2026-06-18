@@ -4,7 +4,7 @@ import { config } from "../config/index.js";
 import logger from "../config/logger.js";
 import AppError from "./errors/appError.js";
 import { StatusCodes } from "http-status-codes";
-
+import prisma from "../config/prisma.js";
 
 // . Access Token Generate 
 export const generateAccessToken = (userId) => {
@@ -30,6 +30,27 @@ export const generateRefreshToken = (userId) => {
             expiresIn: config.REFRESH_TOKEN_EXP
         });
 };
+
+export const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: {id:userId}
+        })
+
+        const accessToken = generateAccessToken(userId);
+        const refreshToken = generateRefreshToken(userId);
+
+        // user.refreshToken = refreshToken;
+        
+
+        return {accessToken, refreshToken};
+
+    } catch (error) {
+        
+     console.log("Something went wrong while generation ACCESS and REFRESH tokens", error)
+        
+    }
+}
 
 
 // verfiy Refresh Token
