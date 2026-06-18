@@ -97,7 +97,7 @@ export async function sendOtpEmail(email, otp) {
           box-shadow: 0 4px 10px rgba(0,0,0,0.05);
      ">
           <div style="text-align: center; margin-bottom: 20px;">
-               <h2 style="color: #4A3AFF; margin: 0;">DesignKarle</h2>
+               <h2 style="color: #4A3AFF; margin: 0;">Backend</h2>
           </div>
 
           <p style="font-size: 16px; color: #333;">
@@ -105,7 +105,7 @@ export async function sendOtpEmail(email, otp) {
           </p>
 
           <p style="font-size: 16px; color: #333;">
-               Welcome to <strong>DesignKarle</strong> 👋  
+               Welcome to <strong>Backend</strong> 👋  
                Your account has been successfully created and verified.
           </p>
 
@@ -136,7 +136,7 @@ export async function sendOtpEmail(email, otp) {
 
           <p style="font-size: 14px; color: #888; text-align: center;">
                Happy Learning 🎉<br/>
-               <strong>Team DesignKarle</strong>
+               <strong>Team Backend</strong>
           </p>
      </div>`};
 

@@ -22,6 +22,13 @@ const config = {
     MAIL_SEND: process.env.MAIL_SEND,
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
 
+    ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+    ACCESS_TOKEN_EXP: process.env.ACCESS_TOKEN_EXP,
+    ACCESS_TOKEN_EXP_Sec: Number(process.env.ACCESS_TOKEN_EXP_Sec),
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+    REFRESH_TOKEN_EXP: process.env.REFRESH_TOKEN_EXP,
+    REFRESH_TOKEN_EXP_SEC: Number(process.env.REFRESH_TOKEN_EXP_SEC),
+
 }
 
 export {config};
