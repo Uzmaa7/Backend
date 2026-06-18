@@ -32,24 +32,12 @@ export const generateRefreshToken = (userId) => {
 };
 
 export const generateAccessAndRefreshToken = async (userId) => {
-    try {
-        const user = await prisma.user.findUnique({
-            where: {id:userId}
-        })
-
+   
         const accessToken = generateAccessToken(userId);
         const refreshToken = generateRefreshToken(userId);
 
-        // user.refreshToken = refreshToken;
-        
-
         return {accessToken, refreshToken};
 
-    } catch (error) {
-        
-     console.log("Something went wrong while generation ACCESS and REFRESH tokens", error)
-        
-    }
 }
 
 

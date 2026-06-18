@@ -5,15 +5,14 @@ const router = express.Router();
 
 const {authController} = initializedContainer.controller;
 
-/**
- * @route   POST /api/v1/auth/send-otp
- * @desc    Validate user data and send OTP to email
- * @access  Public
- */
+
 router.post("/send-otp", (req, res, next) => authController.sendOtp(req, res, next));
 
 router.post("/verify-otp", (req, res, next) => authController.verifyOtp(req, res, next));
 
 router.post("/login", (req, res, next) => authController.login(req, res, next));
+
+router.get("/refresh", (req, res, next) => authController.rotateRefreshToken(req, res, next));
+
 
 export default router;

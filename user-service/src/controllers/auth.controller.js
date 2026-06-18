@@ -18,17 +18,17 @@ export class AuthController {
     async sendOtp(req, res, next) {
         try {
 
-            const {firstName, lastName, email, password, confirmPassword} = req.body;
+            const { firstName, lastName, email, password, confirmPassword } = req.body;
 
-            if(!firstName || !lastName || !email || !password || !confirmPassword){
+            if (!firstName || !lastName || !email || !password || !confirmPassword) {
                 throw new AppError("All fields are mandatory to fill", StatusCodes.BAD_REQUEST)
             }
 
-            if(password != confirmPassword){
+            if (password != confirmPassword) {
                 throw new AppError("Password and confirm Password mismatch", StatusCodes.BAD_REQUEST)
             }
 
-            const {otpSessionId} = await this.authService.sendOtp(firstName, lastName, email, password);
+            const { otpSessionId } = await this.authService.sendOtp(firstName, lastName, email, password);
 
             const cookieOptions = {
                 httpOnly: true,
@@ -39,30 +39,30 @@ export class AuthController {
 
             SuccessResponse.message = "OTP sent succesfuly"
             res
-            .cookie("otp_session", otpSessionId, cookieOptions)
-            .status(StatusCodes.OK)
-            .json(SuccessResponse)
+                .cookie("otp_session", otpSessionId, cookieOptions)
+                .status(StatusCodes.OK)
+                .json(SuccessResponse)
 
         } catch (error) {
             logger.error("Error in AuthController [sendOtp]:", error);
-            
+
             ErrorResponse.error = error;
 
             return res
-            .status(error.statusCode)
-            .json(ErrorResponse)
-           
+                .status(error.statusCode)
+                .json(ErrorResponse)
+
 
         }
     }
 
-    async verifyOtp(req, res, next){
+    async verifyOtp(req, res, next) {
         try {
 
-            const {otp} = req.body;
+            const { otp } = req.body;
             const otpSessionId = req.cookies?.otp_session;
 
-            if(!otp || !otpSessionId){
+            if (!otp || !otpSessionId) {
                 throw new AppError("Otp or otpSession is missing", StatusCodes.BAD_REQUEST);
             }
 
@@ -72,61 +72,107 @@ export class AuthController {
             SuccessResponse.message = "User create Successfully";
 
             return res
-            .clearCookie("otp_session")
-            .status(StatusCodes.CREATED)
-            .json(SuccessResponse)
+                .clearCookie("otp_session")
+                .status(StatusCodes.CREATED)
+                .json(SuccessResponse)
 
         } catch (error) {
             logger.error("Error in AuthController [verifyOtp]:", error);
-            
+
             ErrorResponse.error = error;
 
             return res
-            .status(error.statusCode)
-            .json(ErrorResponse)
+                .status(error.statusCode)
+                .json(ErrorResponse)
         }
     }
 
-    async login(req, res, next){
+    async login(req, res, next) {
         try {
 
-            const {email, password} = req.body;
+            const { email, password } = req.body;
 
-            if(!email || !password){
+            if (!email || !password) {
                 throw new AppError("Email and password are required", StatusCodes.BAD_REQUEST);
             }
 
-            const {accessToken, refreshToken, loggedInUser} = await this.authService.login(email, password);
+            const { accessToken, refreshToken, loggedInUser } = await this.authService.login(email, password);
 
             SuccessResponse.message = "Logged in Successfully";
-            SuccessResponse.data = loggedInUser; 
+            SuccessResponse.data = loggedInUser;
 
 
 
             res
-            .status(StatusCodes.OK)
-            .cookie("accessToken", accessToken, {
+                .status(StatusCodes.OK)
+                .cookie("accessToken", accessToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: config.ACCESS_TOKEN_EXP_SEC * 1000
+                })
+                .cookie("refreshToken", refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: config.REFRESH_TOKEN_EXP_SEC * 1000
+                })
+                .json(SuccessResponse)
+
+        } catch (error) {
+            logger.error("Error in AuthController [login]:", error);
+
+            ErrorResponse.error = error;
+
+            return res
+                .status(error.statusCode)
+                .json(ErrorResponse)
+        }
+    }
+
+
+
+    async rotateRefreshToken(req, res, next) {
+    
+        try {
+            const refreshTokenn = req.cookies.refreshToken;
+            if (!refreshTokenn) {
+                throw new AppError("Refresh token is missing", "LOGIN AGAIN", StatusCodes.UNAUTHORIZED);
+            }
+            // const deviceId = getDeviceFingerprint(req);
+            const { newAccessToken, newRefreshToken } = await this.authService.rotateRefreshToken(refreshTokenn);
+
+            SuccessResponse.message = "Access and Refresh token reissued successfully";
+
+            
+
+            return res
+            .cookie("accessToken", newAccessToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "strict",
                 maxAge: config.ACCESS_TOKEN_EXP_SEC * 1000
             })
-            .cookie("refreshToken", refreshToken, {
+            .cookie("refreshToken", newRefreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "strict",
                 maxAge: config.REFRESH_TOKEN_EXP_SEC * 1000
             })
-            .json(SuccessResponse)
+            .status(StatusCodes.OK)
+            .json(SuccessResponse);
 
         } catch (error) {
-            logger.error("Error in AuthController [login]:", error);
-            
-            ErrorResponse.error = error;
 
-            return res
-            .status(error.statusCode)
-            .json(ErrorResponse)
+            logger.error("Error in AuthController [rotateRefreshToken]:", error);
+            
+            // Standard ErrorResponse structure jo aap baaki controllers me use kar rahe hain
+            ErrorResponse.error = error;
+            
+           return res
+                .status(error.statusCode)
+                .json(ErrorResponse)
         }
+        
     }
 }   
