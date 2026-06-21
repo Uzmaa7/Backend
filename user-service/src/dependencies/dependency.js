@@ -1,6 +1,8 @@
 import { AuthController } from "../controllers/auth.controller.js";
 import { AuthService } from "../services/auth.service.js"
 import userRepository from "../repositories/UserRepository.js"
+import { UserController } from "../controllers/user.controller.js";
+import { UserService } from "../services/user.service.js";
 
 /**
  * Dependency Injection Container for the Auth module.
@@ -16,12 +18,14 @@ class Container {
 
         // Initialize services with their respective repositories
         const services = {
-            authService: new AuthService(repositories.userRepository)
+            authService: new AuthService(repositories.userRepository),
+            userService: new UserService(repositories.userRepository)
         };
 
         // Initialize controllers with their respective services
         const controller = {
-            authController: new AuthController(services.authService)
+            authController: new AuthController(services.authService),
+            userController: new UserController(services.userService)
         }
 
         return {
