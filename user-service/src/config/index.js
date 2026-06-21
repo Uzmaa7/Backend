@@ -15,7 +15,7 @@ const config = {
     REDIS_USER_TTL: Number(process.env.REDIS_USER_TTL),
 
 
-    OTP_TTL: process.env.OTP_TTL || 300,
+    OTP_TTL: Number(process.env.OTP_TTL) || 300,
     OTP_RATE_MAX_PER_HOUR: process.env.OTP_RATE_MAX_PER_HOUR || 5,
     OTP_MAX_VERIFY_ATTEMPTS: process.env.OTP_MAX_VERIFY_ATTEMPTS || 5,
     OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET,
@@ -29,6 +29,9 @@ const config = {
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXP: process.env.REFRESH_TOKEN_EXP,
     REFRESH_TOKEN_EXP_SEC: Number(process.env.REFRESH_TOKEN_EXP_SEC),
+
+    KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID,
+    KAFKA_BROKER: process.env.KAFKA_BROKER,
 
 }
 
