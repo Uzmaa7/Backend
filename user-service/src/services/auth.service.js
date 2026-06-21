@@ -5,9 +5,10 @@ import AppError from "../utils/errors/appError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { generateAndStoreOtp, verifyOtp } from "../utils/otp.js";
-import { sendOtpEmail, verifyOtpEmail } from "../utils/email.js";
+// import { sendOtpEmail, verifyOtpEmail } from "../utils/email.js";
 import { generateAccessAndRefreshToken, verifyRefreshToken } from "../utils/auth.js";
 import { redis } from "../config/redis.js";
+import notificationProducer from "../kafka/producer/notification.producer.js";
 
 export class AuthService {
     constructor(userRepository) {
@@ -28,7 +29,12 @@ export class AuthService {
 
             const { otp, otpSessionId } = await generateAndStoreOtp(meta);
 
-            await sendOtpEmail(email, otp);
+            //this is synchronous way of sending email
+            // await sendOtpEmail(email, otp);
+
+            // asynchronous way of sending email using kafka
+            await notificationProducer.sendOtpEmail(email, otp, (config.OTP_TTL) / 60);
+            logger.info(`OTP email queued for :${email}`);
 
             return { otpSessionId };
 
@@ -63,7 +69,9 @@ export class AuthService {
                 emailVerified: true,
             })
 
-            await verifyOtpEmail(meta);
+            // await verifyOtpEmail(meta);
+
+            await notificationProducer.sendWelcomeEmail(meta.email, meta.firstName);
 
             return user;
 
