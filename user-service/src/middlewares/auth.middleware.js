@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import AppError from "../utils/errors/appError";
+import AppError from "../utils/errors/appError.js";
 import prisma from "../config/prisma.js";
 import logger from "../config/logger.js";
 import { config } from "../config/index.js";
