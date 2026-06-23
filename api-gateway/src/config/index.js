@@ -1,0 +1,33 @@
+import packageJson from "../../package.json" with { type: "json" };
+import dotenv from "dotenv";
+
+const config = {
+     PORT: process.env.PORT || 4000,
+
+     SERVICE_NAME: packageJson.name,
+
+     NODE_ENV: process.env.NODE_ENV || 'development',
+
+     REDIS_URL: process.env.REDIS_URL,
+
+     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
+
+    ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+    ACCESS_TOKEN_EXP: process.env.ACCESS_TOKEN_EXP,
+    ACCESS_TOKEN_EXP_SEC: Number(process.env.ACCESS_TOKEN_EXP_Sec),
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+    REFRESH_TOKEN_EXP: process.env.REFRESH_TOKEN_EXP,
+    REFRESH_TOKEN_EXP_SEC: Number(process.env.REFRESH_TOKEN_EXP_SEC),
+
+
+};
+
+const requiredConfig = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+
+requiredConfig.forEach((key) => {
+     if (!config[key]) {
+          throw new Error(`Missing required environment variable: ${key}`);
+     }
+});
+
+export {config};
