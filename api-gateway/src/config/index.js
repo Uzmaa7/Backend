@@ -22,6 +22,14 @@ const config = {
     CIRCUIT_BREAKER_THRESHOLD:parseInt(process.env.CIRCUIT_BREAKER_THRESHOLD || '5', 10),
     CIRCUIT_BREAKER_TIMEOUT:parseInt(process.env.CIRCUIT_BREAKER_TIMEOUT || '60000', 10),
 
+    SERVICES: {
+          USER_SERVICE_URL: process.env.USER_SERVICE_URL || 'http://localhost:4001',
+          NOTIFICATION_SERVICE_URL: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4004',
+
+     },
+
+     SERVICE_TIMEOUT_MS: parseInt(process.env.SERVICE_TIMEOUT_MS || '60000', 10),
+
 
 };
 

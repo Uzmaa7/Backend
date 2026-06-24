@@ -2,6 +2,7 @@ import {config} from "../config/index.js";
 import logger from "../config/logger.js";
 import { StatusCodes } from "http-status-codes";
 import AppError from "../utils/error/appError.js";
+import axios from "axios";
 
 /**
  * Circuit Breaker implementation
@@ -89,6 +90,105 @@ const circuitBreakers = {
 
 
 
+async function forwardRequest(serviceUrl, path, method, data, headers, circuitBreaker) {
+     const url = `${serviceUrl}${path}`;
+     // http://localhost:4001/auth/login
+     const requestConfig = {
+          method,
+          url,
+          timeout: config.SERVICE_TIMEOUT_MS,
+          headers: {
+               ...headers,
+               // Remove host header to avoid conflicts
+               host: undefined,
+               // Remove content-length to let axios recalculate
+               'content-length': undefined,
+          },
+          // Important: Don't validate status, let service response through
+          validateStatus: () => true,
+          // Set max redirects
+          maxRedirects: 5,
+     };
+
+     // Add data based on method
+     if (method !== 'GET' && method !== 'DELETE' && data) {
+          requestConfig.data = data;
+     }
+
+     // For GET and DELETE, add params if data exists
+     if ((method === 'GET' || method === 'DELETE') && data) {
+          requestConfig.params = data;
+     }
+
+     logger.debug(`Forwarding ${method} ${url}`, {
+          headers: requestConfig.headers,
+          hasData: !!data,
+          timeout: config.SERVICE_TIMEOUT_MS,
+     });
+
+     try {
+          const response = await circuitBreaker.execute(() => axios(requestConfig));
+
+          logger.debug(`Response from ${url}:`, {
+               status: response.status,
+               statusText: response.statusText,
+          });
+
+          return {
+               status: response.status,
+               data: response.data,
+               headers: response.headers,
+          };
+     } catch (err) {
+          logger.error(`Error forwarding to ${serviceUrl}:`, {
+               message: err.message,
+               code: err.code,
+               url: url,
+               method: method,
+               timeout: config.SERVICE_TIMEOUT_MS,
+          });
+
+          if (err instanceof AppError) {
+               throw err;
+          }
+
+          if (err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT') {
+               throw new AppError(
+                    `Request to ${serviceUrl} timed out after ${config.SERVICE_TIMEOUT_MS}ms`,
+                    StatusCodes.GATEWAY_TIMEOUT
+               );
+          }
+
+          if (err.code === 'ECONNREFUSED') {
+               throw new AppError(
+                    `Cannot connect to ${serviceUrl}. Service may be down.`,
+                    StatusCodes.SERVICE_UNAVAILABLE
+               );
+          }
+
+          if (err.response) {
+               logger.error(`Service error from ${serviceUrl}:`, {
+                    status: err.response.status,
+                    data: err.response.data,
+               });
+
+               return {
+                    status: err.response.status,
+                    data: err.response.data,
+                    headers: err.response.headers,
+               };
+          }
+
+          // Network error or service down--You would have seen this in video
+          logger.error(`Network error while calling ${serviceUrl}:`, err.message);
+
+          throw new AppError(
+               `Service temporarily unavailable: ${err.message}`, 
+               StatusCodes.SERVICE_UNAVAILABLE
+          );
+     }
+}
+
 
 
 /**
@@ -134,7 +234,7 @@ function createProxy(serviceName, serviceUrl) {
 
                // Send response
                res.status(result.status).json(result.data);
-               
+
           } catch (err) {
                next(err);
           }
@@ -147,3 +247,10 @@ function createProxy(serviceName, serviceUrl) {
 function getCircuitBreakerStatus() {
      return Object.values(circuitBreakers).map((cb) => cb.getState());
 }
+
+export {
+     createProxy,
+     CircuitBreaker,
+     circuitBreakers,
+     getCircuitBreakerStatus,
+};
