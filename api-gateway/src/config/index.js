@@ -19,6 +19,9 @@ const config = {
     REFRESH_TOKEN_EXP: process.env.REFRESH_TOKEN_EXP,
     REFRESH_TOKEN_EXP_SEC: Number(process.env.REFRESH_TOKEN_EXP_SEC),
 
+    CIRCUIT_BREAKER_THRESHOLD:parseInt(process.env.CIRCUIT_BREAKER_THRESHOLD || '5', 10),
+    CIRCUIT_BREAKER_TIMEOUT:parseInt(process.env.CIRCUIT_BREAKER_TIMEOUT || '60000', 10),
+
 
 };
 
