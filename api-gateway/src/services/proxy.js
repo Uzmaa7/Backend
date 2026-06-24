@@ -38,7 +38,7 @@ class CircuitBreaker {
           } catch (err) {
 
                this.onFailure();
-               
+
                if (err instanceof AppError) {
                     throw err;
                }
@@ -86,3 +86,64 @@ const circuitBreakers = {
      searchService: new CircuitBreaker('search-service'),
      bookingService: new CircuitBreaker('booking-service')
 };
+
+
+
+
+
+/**
+ * Proxy middleware factory
+ */
+function createProxy(serviceName, serviceUrl) {
+     const circuitBreaker = circuitBreakers[serviceName];
+
+     if (!circuitBreaker) {
+         throw new AppError(`No circuit breaker found for service: ${serviceName}`, StatusCodes.INTERNAL_SERVER_ERROR);
+     }
+
+     return async (req, res, next) => {
+          try {
+               // Extract path (remove /api prefix only)
+               // Gateway: /api/users/auth/login -> Service: /auth/login
+               // Gateway: /api/users/user/profile -> Service: /user/profile
+               logger.info(req.path);//  /users/auth/login
+               const pathParts = req.path.split('/').filter(Boolean);
+               // pathParts: ['users', 'auth', 'login']
+               logger.info(pathParts);
+               // Remove 'users' (first part), keep the rest
+               // ['users', 'auth', 'login'] -> ['auth', 'login'] -> '/auth/login'
+               const servicePath = '/' + pathParts.slice(1).join('/');
+               logger.info(servicePath); //  '/auth/login'
+
+               const result = await forwardRequest(
+                    serviceUrl,
+                    servicePath + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''),
+                    req.method,
+                    req.body,
+                    req.headers,
+                    circuitBreaker
+               );
+
+               // Forward response headers (except some)
+               const excludeHeaders = ['connection', 'keep-alive', 'transfer-encoding', 'host'];
+               Object.keys(result.headers).forEach((key) => {
+                    if (!excludeHeaders.includes(key.toLowerCase())) {
+                         res.setHeader(key, result.headers[key]);
+                    }
+               });
+
+               // Send response
+               res.status(result.status).json(result.data);
+               
+          } catch (err) {
+               next(err);
+          }
+     };
+}
+
+/**
+ * Health check endpoint for circuit breakers
+ */
+function getCircuitBreakerStatus() {
+     return Object.values(circuitBreakers).map((cb) => cb.getState());
+}
