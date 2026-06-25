@@ -23,8 +23,8 @@ app.use(reqLogger);
 app.use(corsMiddleware);
 
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users", userRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 app.get("/", (req, res) => {
      res.send("Hello from server.js of user-service");

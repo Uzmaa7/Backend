@@ -1,7 +1,9 @@
 import logger from "../config/logger.js";
 
 const reqLogger = (req, res, next) => {
+
     logger.debug(`${req.method} ${req.originalUrl}`);
+    
     const start = Date.now()
 
     res.on("finish", () => {

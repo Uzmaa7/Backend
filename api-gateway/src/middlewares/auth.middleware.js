@@ -1,6 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import AppError from "../utils/errors/appError.js";
-// import prisma from "../config/prisma.js";
+import AppError from "../utils/error/appError.js";
 import logger from "../config/logger.js";
 import { config } from "../config/index.js";
 import jwt from "jsonwebtoken";
@@ -19,29 +18,13 @@ export const verifyJWT = async(req, res, next) => {
         // lets verify the token 
         const decodedToken = jwt.verify(token, config.ACCESS_TOKEN_SECRET);
 
-        // const user = await prisma.user.findUnique({
-        //     where: {
-        //         id: decodedToken.id
-        //     },
-        //     select: {
-        //         id: true,
-        //         firstName: true,
-        //         lastName: true,
-        //         email: true,
-        //         emailVerified: true,
-        //         createdAt: true,
-        //         updatedAt: true
-               
-        //     }
-        // });
-
-        // if(!user){
-        //     throw new AppError("Invalid Access Token",StatusCodes.UNAUTHORIZED);
-        // }
+        
 
         req.user = {
             id: decodedToken.id
         }
+
+        req.headers['x-user-id'] = decodedToken.id.toString();
 
         next()
 

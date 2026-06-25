@@ -1,5 +1,7 @@
 import packageJson from "../../package.json" with { type: "json" };
 import dotenv from "dotenv";
+dotenv.config();
+
 
 const config = {
      PORT: process.env.PORT || 4000,
@@ -22,6 +24,10 @@ const config = {
     CIRCUIT_BREAKER_THRESHOLD:parseInt(process.env.CIRCUIT_BREAKER_THRESHOLD || '5', 10),
     CIRCUIT_BREAKER_TIMEOUT:parseInt(process.env.CIRCUIT_BREAKER_TIMEOUT || '60000', 10),
 
+    RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+     RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+
+     
     SERVICES: {
           USER_SERVICE_URL: process.env.USER_SERVICE_URL || 'http://localhost:4001',
           NOTIFICATION_SERVICE_URL: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4004',
@@ -33,7 +39,7 @@ const config = {
 
 };
 
-const requiredConfig = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+const requiredConfig = ['ACCESS_TOKEN_SECRET', 'REFRESH_TOKEN_SECRET'];
 
 requiredConfig.forEach((key) => {
      if (!config[key]) {
