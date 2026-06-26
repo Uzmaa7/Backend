@@ -4,7 +4,7 @@ import AppError from "../utils/errors/appError.js";
 import { StatusCodes } from "http-status-codes";
 
 
-export default class BaseRepository {
+export default class CrudRepository {
     constructor(model) {
         this.model = prisma[model];
     }
