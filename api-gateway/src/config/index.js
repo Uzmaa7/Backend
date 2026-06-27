@@ -31,7 +31,7 @@ const config = {
     SERVICES: {
           USER_SERVICE_URL: process.env.USER_SERVICE_URL || 'http://localhost:4001',
           NOTIFICATION_SERVICE_URL: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4004',
-
+           ADMIN_SERVICE_URL: process.env.ADMIN_SERVICE_URL || 'http://localhost:4003',
      },
 
      SERVICE_TIMEOUT_MS: parseInt(process.env.SERVICE_TIMEOUT_MS || '60000', 10),

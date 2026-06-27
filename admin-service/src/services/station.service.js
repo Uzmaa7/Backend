@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../utils/errors/appError.js";
 import logger from "../config/logger.js";
-
+import adminProducer from "../kafka/producer/admin.producer.js";
 
 export class StationService{
     constructor(stationRepository) {
@@ -23,6 +23,12 @@ export class StationService{
             const station = await this.stationRepository.create(data);
 
             logger.info("Station created", {id: station.id, code: station.code});
+
+            await adminProducer.publishStationCreated(station).catch((err) => {
+                logger.error("failed to publish stationCreated event to kafka", {error: err.message})
+            })
+
+            return station;
 
 
         } catch (error) {
