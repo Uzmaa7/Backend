@@ -10,6 +10,7 @@ import { disconnectProducer } from './config/kafka.js';
 
 //Routes
 import stationRoutes from './routes/station.route.js';
+import trainRouter from './routes/train.route.js';
 
 
 // Middlewares
@@ -53,6 +54,7 @@ app.get('/health', (req, res) => {
 
 // API Routes - All protected by auth middleware
 app.use("/stations", stationRoutes);
+app.use("/trains", trainRouter);
 
 
 

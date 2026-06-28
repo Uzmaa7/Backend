@@ -72,6 +72,14 @@ class AdminProducer {
                { eventType: 'STATION_CREATED', data: station, timestamp: new Date().toISOString() }
           );
      }
+
+     async publishTrainCreated(trainData) {
+          return this.sendMessage(
+               TOPICS.TRAIN_CREATED,
+               `train-${trainData.id}`,
+               trainData
+          );
+     }
 }
 
 export default new AdminProducer();

@@ -2,6 +2,9 @@
 import stationRepository from "../repositories/stationRespository.js";
 import { StationController } from "../controllers/station.controller.js";
 import { StationService } from "../services/station.service.js";
+import {TrainService} from "../services/train.service.js";
+import {TrainController} from "../controllers/train.controller.js";
+import trainRepository from "../repositories/trainRepository.js";
 
 /**
  * Dependency Injection Container for the admin-service.
@@ -11,17 +14,20 @@ class Container {
     static init() {
         // Initialize repositories
         const repositories = {
-            stationRepository: stationRepository
+            stationRepository: stationRepository,
+            trainRepository: trainRepository,
         };
 
         // Initialize services with their respective repositories
         const services = {
-            stationService: new StationService(repositories.stationRepository)
+            stationService: new StationService(repositories.stationRepository),
+            trainService: new TrainService(repositories.trainRepository),
         };
 
         // Initialize controllers with their respective services
         const controller = {
-            stationController: new StationController(services.stationService)
+            stationController: new StationController(services.stationService),
+            trainController: new TrainController(services.trainService),
         }
 
         return {

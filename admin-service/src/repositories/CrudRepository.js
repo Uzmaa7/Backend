@@ -89,6 +89,8 @@ export default class CrudRepository {
      */
     async findOne(whereCondition) {
 
+        // logger.info("inside crudRepo: ", whereCondition);
+
         return await this.model.findUnique({
             where: whereCondition
         });
