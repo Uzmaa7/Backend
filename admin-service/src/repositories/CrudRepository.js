@@ -48,10 +48,10 @@ export default class CrudRepository {
      * return {}
      * if not found : return null
      */
-    async findById(id) {
+    async findById(id) {// 👈 id = "123-uuid-456"
 
         const response = await this.model.findUnique({
-            where: { id }
+            where: { id }// 👈 "123-uuid-456"
         })
 
         if (!response) {
@@ -87,12 +87,12 @@ export default class CrudRepository {
      * return {}
      * if not found null
      */
-    async findOne(whereCondition) {
+    async findOne(whereCondition) {// 👈 { trainNumber: "12301" }
 
         // logger.info("inside crudRepo: ", whereCondition);
 
         return await this.model.findUnique({
-            where: whereCondition
+            where: whereCondition // 👈 { trainNumber: "12301" }
         });
 
 

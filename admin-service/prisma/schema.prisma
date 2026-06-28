@@ -28,12 +28,19 @@ model Station {
   @@map("stations")
 }
 
+/** 
+*Train(Shridham Express) -> TrainNumber(12301), 
+*                        -> Coach(GEN, AC),
+*                        -> TotalSeats(70),
+*                        -> Seats [SeatsId-1, SeatsId-2.....],
+*                        -> Route -routeId - (single route exist for single train)
+*/
 model Train {
   id          String   @id @default(uuid())
   trainNumber String   @unique // "12301"
   trainName   String // "Rajdhani Express"
   coachName   String   @default("GEN") // Single coach per train (simplified)
-  totalSeats  Int // Total seats in the single coach
+  totalSeats  Int // Total seats in the single coach - 70
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -65,6 +72,10 @@ model Seat {
   @@map("seats")
 }
 
+/**
+*Route -> (trainId) - this route belongs to Shridham Express Train
+*      -> routeStations[S1, S2, S3, S4, S5, S6, S7] - this route have 7 stations
+*/
 model Route {
   id      String @id @default(uuid())
   trainId String @unique

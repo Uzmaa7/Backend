@@ -80,6 +80,14 @@ class AdminProducer {
                trainData
           );
      }
+
+      async publishRouteCreated(routeData) {
+          return this.sendMessage(
+               TOPICS.ROUTE_CREATED,
+               `route-${routeData.id}`,
+               routeData
+          );
+     }
 }
 
 export default new AdminProducer();
