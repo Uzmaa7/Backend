@@ -147,17 +147,41 @@ export class TrainService {
                 logger.error('Failed to publish route created event', { error: err.message });
             })
 
-                return route;
+            return route;
 
-            } catch (error) {
-                logger.error("Error inside TrainService [createRoute]:", error);
+        } catch (error) {
+            logger.error("Error inside TrainService [createRoute]:", error);
 
-                if (error instanceof AppError) {
-                    throw error;
-                }
-
-                throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
-
+            if (error instanceof AppError) {
+                throw error;
             }
-        };
+
+            throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
+
+        }
+    };
+
+    async getTrainById(trainId) {
+        try {
+
+            const existTrain = await this.trainRepository.findTrainWithCompleteDetails(trainId);
+
+            if (!existTrain) {
+                throw new AppError("The requested train was not found", StatusCodes.NOT_FOUND);
+            }
+
+            return existTrain;
+
+        } catch (error) {
+            logger.error("Error inside TrainService [createRoute]:", error);
+
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
+
+
+        }
     }
+}

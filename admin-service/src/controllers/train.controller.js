@@ -83,4 +83,34 @@ export class TrainController {
                 .json(ErrorResponse)
         }
     }
+
+    async getTrainById(req, res, next){
+        try {
+            
+            const {trainId} = req.params;
+
+            if(!trainId){
+                throw new AppError("TrainID is missing", StatusCodes.BAD_REQUEST);
+            }
+
+            const train = await this.trainService.getTrainById(trainId);
+
+            SuccessResponse.data = train;
+            SuccessResponse.message = "Train fetched Successfully";
+
+            return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse)
+
+        } catch (error) {
+            logger.error("Error in TrainController [getTrainById] : ", error);
+
+            ErrorResponse.error = error;
+            const statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
+
+            return res
+                .status(statusCode)
+                .json(ErrorResponse)
+        }
+    }
 }

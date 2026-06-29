@@ -9,6 +9,8 @@ const {trainController} = initializedContainer.controller;
 
 router.post("/train", getUserContext, (req, res, next) => trainController.createTrain(req, res, next));
 
+router.get("/train/:trainId", getUserContext, (req, res, next) => trainController.getTrainById(req, res, next));
+
 router.post("/route", getUserContext, (req, res, next) => trainController.createRoute(req, res, next));
 
 export default router;
