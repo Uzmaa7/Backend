@@ -6,7 +6,7 @@ import logger from "../config/logger.js";
 export class TrainController {
     constructor(trainService) {
         if (!trainService) {
-            throw new Error("TrainService is required for TrainService")
+            throw new Error("TrainService is required for TrainController")
         }
 
         this.trainService = trainService;

@@ -45,7 +45,7 @@ model Train {
   updatedAt   DateTime @updatedAt
 
   seats     Seat[]
-  route     Route?
+  route     Route? // Object {} or null
   schedules Schedule[]
 
   @@map("trains")

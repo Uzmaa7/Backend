@@ -88,6 +88,14 @@ class AdminProducer {
                routeData
           );
      }
+
+      async publishScheduleCreated(scheduleData) {
+          return this.sendMessage(
+               TOPICS.SCHEDULE_CREATED,
+               `schedule-${scheduleData.id}`,
+               scheduleData
+          );
+     }
 }
 
 export default new AdminProducer();

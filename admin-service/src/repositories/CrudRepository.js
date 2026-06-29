@@ -9,12 +9,23 @@ export default class CrudRepository {
         this.model = prisma[model];
     }
     /**
-     * 1. Create a new record
-     * return {}
+     * 1. Create a new record,
+     * return {},
+     * dataa = {
+    *   trainId: trainId,
+    *   departureDate: parseDate
+    *  }
      */
-    async create(data) {
 
-        const response = await this.model.create({ data });
+    //     const newRecord = await prisma.user.create({
+    //   data: {
+    //     email: 'alice@example.com',
+    //     name: 'Alice',
+    //   },
+    // });
+    async create(dataa) {
+
+        const response = await this.model.create({ data: dataa });
         return response;
 
     }
@@ -33,7 +44,7 @@ export default class CrudRepository {
             });
             return response;
         } catch (error) {
-            
+
             if (error.code === 'P2025') {
                 throw new AppError('The resource you are trying to delete does not exist', StatusCodes.NOT_FOUND);
             }
@@ -75,7 +86,7 @@ export default class CrudRepository {
             where: whereCondition
         });
 
-        
+
 
     }
 
@@ -106,11 +117,11 @@ export default class CrudRepository {
 
         try {
             const response = await this.model.update({
-            where: { id },
-            data: updateData
-        });
+                where: { id },
+                data: updateData
+            });
 
-        return response;
+            return response;
         } catch (error) {
             if (error.code === 'P2025') {
                 throw new AppError('The resource you are trying to update does not exist', StatusCodes.NOT_FOUND);
