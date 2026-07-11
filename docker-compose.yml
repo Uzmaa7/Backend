@@ -6,6 +6,7 @@ services:
     image: postgres:15
     container_name: postgres
     restart: always
+    mem_limit: 256m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -16,6 +17,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:                
       - irctc-network
+    
   
   pgadmin: 
     image: dpage/pgadmin4
@@ -29,11 +31,13 @@ services:
       - postgres
     networks:                 
       - irctc-network
+    
 
   redis:
     image: redis/redis-stack:6.2.6-v19
     container_name: redis
     restart: always
+    mem_limit: 256m
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
     ports:
@@ -43,6 +47,7 @@ services:
       - redis_data:/data
     networks:                
       - irctc-network
+    
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -58,6 +63,7 @@ services:
       - zookeeper_logs:/var/lib/zookeeper/log
     networks:
       - irctc-network
+    
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -78,10 +84,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xms200m -Xmx200m"
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
       - irctc-network
+   
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -97,6 +105,40 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:${ZOOKEEPER_CLIENT_PORT}
     networks:
       - irctc-network
+    
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    restart: always
+    mem_limit: 512m
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - irctc-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana
+    restart: always
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      NODE_OPTIONS: "--max-old-space-size=512"
+    networks:
+      - irctc-network
+    
   
 volumes:
   postgres_data:
@@ -104,6 +146,7 @@ volumes:
   zookeeper_data:
   zookeeper_logs:
   kafka_data:
+  es_data:
 
 networks:
   irctc-network:

@@ -1,8 +1,18 @@
 import { Client } from '@elastic/elasticsearch';
-import { config } from './index.js'; // Note: ESM mein .js extension lagana zaroori hota hai agar local file ho
+import { config } from './index.js'; 
 import logger from './logger.js';
 
-export const esClient = new Client({ node: config.ELASTICSEARCH_URL });
+export const esClient = new Client({node: config.ELASTICSEARCH_URL});
+
+
+
+try {
+     // console.log("one =>", esClient);
+    const result = await esClient.info();
+//     console.log("Inside elastic search =>", result);
+} catch (e) {
+    console.error(e);
+}
 
 export const STATION_INDEX = 'stations';
 export const TRAIN_INDEX = 'trains';

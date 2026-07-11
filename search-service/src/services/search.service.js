@@ -95,3 +95,52 @@ const indexTrainRoute = async (routeEvent) => {
      logger.info(`Indexed train ${train.trainNumber} with ${routeStations.length} stations`);
 };
 
+
+const indexSchedule = async (scheduleEvent) => {
+     const { scheduleId, trainId, departureDate, status, seats } = scheduleEvent;
+
+     const totalSeats = seats ? seats.length : 0;
+
+     try {
+          await esClient.update({
+               index: TRAIN_INDEX,
+               id: trainId,
+               script: {
+                    source: `
+            if (ctx._source.schedules == null) { ctx._source.schedules = []; }
+            // Remove existing schedule with same id (idempotent)
+            ctx._source.schedules.removeIf(s -> s.scheduleId == params.scheduleId);
+            ctx._source.schedules.add(params.newSchedule);
+          `,
+                    params: {
+                         scheduleId,
+                         newSchedule: {
+                              scheduleId,
+                              departureDate,
+                              status,
+                              available: totalSeats,
+                              locked: 0,
+                              booked: 0,
+                         },
+                    },
+               },
+               refresh: true,
+          });
+          logger.info(`Indexed schedule ${scheduleId} for train ${trainId}`);
+     } catch (err) {
+          logger.warn(`Could not index schedule for train ${trainId}: ${err.message}`);
+     }
+};
+
+const searchService = {
+     indexStation,
+     indexTrainRoute,
+     indexSchedule
+   
+};
+
+export default searchService;
+
+
+
+

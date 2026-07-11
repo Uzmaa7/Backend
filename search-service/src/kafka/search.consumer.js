@@ -1,8 +1,9 @@
-import { consumer } from "../../config/kafka.js";
+import { consumer } from "../config/kafka.js";
 import { StatusCodes } from 'http-status-codes';
-import AppError from '../../utils/errors/appError.js';
-import logger from "../../config/logger.js";
-import { TOPICS } from "../../utils/constant.js";
+import AppError from '../utils/errors/appError.js';
+import logger from "../config/logger.js";
+import { TOPICS } from '../utils/constant.js';
+import searchService from "../services/search.service.js";
 
 class SearchConsumer {
     async start() {
@@ -17,7 +18,7 @@ class SearchConsumer {
                     TOPICS.SCHEDULE_CREATED,
 
                 ],
-                fromBeginning: false
+                fromBeginning: true
             });
 
             await consumer.run({
@@ -38,8 +39,8 @@ class SearchConsumer {
                                 await searchService.indexTrainRoute(value);
                                 break;
                             case TOPICS.SCHEDULE_CREATED:
-                                await searchService.indexSchedule(value);
-                                break;
+                              await searchService.indexSchedule(value);
+                              break;
                             default:
                                 logger.warn(`Unknown topic: ${topic}`);
                         }
@@ -59,9 +60,9 @@ class SearchConsumer {
                 },
             });
 
-            logger.info('Email consumer is running and listening for messages...');
+            logger.info('Search consumer is running and listening for messages...');
         } catch (error) {
-            logger.error('Error inside EmailConsumer [start]:', error);
+            logger.error('Error inside SearchConsumer [start]:', error);
 
             if (error instanceof AppError) {
                 throw error;
