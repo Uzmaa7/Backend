@@ -16,6 +16,7 @@ import { reqLogger } from './middlewares/req.middleware.js';
 // Routes & Kafka Imports
 import searchConsumer from './kafka/search.consumer.js';
 import { disconnectAll } from './config/kafka.js';
+import searchRoutes from "../src/routes/search.route.js";
 
 const app = express();
 
@@ -29,11 +30,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(corsMiddleware);
 
+app.use(searchRoutes);
+
 app.get("/health", (req, res) => {
     res.status(200).json({
         message: "search service is healthy"
     })
 })
+
+
 
 const startServer = async () => {
      if (process.env.ES_RECREATE_INDICES === 'true') {
