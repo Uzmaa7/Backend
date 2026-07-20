@@ -7,6 +7,7 @@ const TOPICS = {
     STATION_UPDATED: 'admin.station-updated',
     ROUTE_UPDATED: 'admin.route-updated',
     SCHEDULE_UPDATED: 'admin.schedule-updated',
+    SCHEDULE_CANCELLED: 'admin.schedule-cancelled',
 
 };
 export { TOPICS }

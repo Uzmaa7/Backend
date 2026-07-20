@@ -96,6 +96,14 @@ class AdminProducer {
                scheduleData
           );
      }
+
+     async publishScheduleCancelled(schedule) {
+          return this.sendMessage(
+               TOPICS.SCHEDULE_CANCELLED,
+               `schedule-${schedule.id}`,
+               { eventType: 'SCHEDULE_CANCELLED', data: schedule, timestamp: new Date().toISOString() }
+          );
+     }
 }
 
 export default new AdminProducer();

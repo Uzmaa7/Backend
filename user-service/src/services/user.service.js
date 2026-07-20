@@ -10,6 +10,7 @@ export class UserService{
     }
 
     async getProfile(userId){
+        //The Cache-Aside Pattern
         try {
             
             logger.info("First check user in redis");

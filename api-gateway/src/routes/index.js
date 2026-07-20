@@ -95,6 +95,13 @@ router.post(
      adminServiceProxy
 )
 
+router.put(
+     '/admins/schedules/schedule/:scheduleId',
+     verifyJWT,
+     combinedRateLimit(),
+     adminServiceProxy
+)
+
 
 // ===========================
 // SEARCH SERVICE ROUTES (public - no auth required)

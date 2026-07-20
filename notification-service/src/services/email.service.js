@@ -44,7 +44,7 @@ class EmailService {
           const msg = {
                to: email,
                from: this.from,
-               subject: 'Your DesignKarle verification code',
+               subject: 'Your Backend verification code',
                html: getOtpTemplate(otp, ttlMinutes),
           };
 

@@ -80,7 +80,7 @@ export class ScheduleService {
 
             // This event goes to both inventory-service and search-service via Kafka
             await adminProducer.publishScheduleCreated(eventPayload).catch((err) => {
-            logger.info('Failed to publish schedule created event' , { error: err.message });
+                logger.info('Failed to publish schedule created event', { error: err.message });
             })
 
             logger.info(`Schedule created and event published for train ${existTrain.trainNumber} on ${departureDate}`);
@@ -97,4 +97,17 @@ export class ScheduleService {
             throw new AppError("Something went wrong while processing your request on the server", StatusCodes.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async cancelSchedule(scheduleId) {
+        const schedule = await prisma.schedule.findUnique({ where: { id: scheduleId } });
+        if (!schedule) throw new AppError('Schedule not found', StatusCodes.NOT_FOUND);
+        const updated = await prisma.schedule.update({
+            where: { id: scheduleId },
+            data: { status: 'CANCELLED' },
+        });
+
+        await adminProducer.publishScheduleCancelled(updated);
+        logger.info(`Schedule ${scheduleId} successfully cancelled and event published`);
+        return updated;
+    };
 }

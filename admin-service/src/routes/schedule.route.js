@@ -9,4 +9,6 @@ const {scheduleController} = initializedContainer.controller;
 
 router.post("/schedule", getUserContext, (req, res, next) => scheduleController.createSchedule(req, res, next));
 
+router.put('/schedule/:scheduleId', getUserContext, (req, res, next) => scheduleController.cancelSchedule(req, res, next));
+
 export default router;
