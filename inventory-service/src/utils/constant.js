@@ -2,6 +2,7 @@ const TOPICS = {
   SCHEDULE_CREATED: 'admin.schedule-created',
   SCHEDULE_CANCELLED: 'admin.schedule-cancelled',
   DLQ_INVENTORY: 'dlq.inventory-service',
+  SEAT_AVAILABILITY_UPDATED: 'inventory.seat-availability-updated',
  
 };
 
