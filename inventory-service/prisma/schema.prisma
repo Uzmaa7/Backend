@@ -94,7 +94,7 @@ model SeatSegmentLock {
   scheduleId    String
   seatId        String
   fromSeq       Int        // sequenceNumber of boarding station
-  toSeq         Int        // sequenceNumber of alighting station
+  toSeq         Int         // sequenceNumber of alighting station
   status        SeatStatus @default(LOCKED)
   lockedBy      String?
   lockedAt      DateTime?
