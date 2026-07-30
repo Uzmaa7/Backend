@@ -3,6 +3,7 @@ import { config } from "../../../booking-service/src/config";
 import logger from "../../../booking-service/src/config/logger.js";
 import AppError from "../../../booking-service/src/utils/errors/appError.js";
 import { StatusCodes } from "http-status-codes";
+import paymentProducer from "../kafka/producer/payment.producer.js";
 
 // ─── Idempotency Helper ──────────────────────────────────────────────────────
 
@@ -84,9 +85,116 @@ const createPaymentOrder = async (bookingId, amount, userId, idempotencyKey) => 
     });
 }
 
+// ─── Verify and Capture (client-side verification) ───────────────────────────
+
+const verifyAndCapturePayment = async (paymentOrderId, gatewayPaymentId, gatewaySignature) => {
+     if (!paymentOrderId || !gatewayPaymentId || !gatewaySignature) {
+          throw new AppError('paymentOrderId, gatewayPaymentId, and gatewaySignature are required', StatusCodes.BAD_REQUEST);
+     }
+
+     const paymentOrder = await prisma.paymentOrder.findUnique({
+          where: { id: paymentOrderId },
+     });
+
+     if (!paymentOrder) {
+          throw new AppError('Payment order not found', StatusCodes.NOT_FOUND);
+     }
+
+     // Idempotent
+     if (paymentOrder.status === 'CAPTURED') {
+          return {
+               paymentOrderId: paymentOrder.id,
+               status: 'CAPTURED',
+               gatewayPaymentId: paymentOrder.gatewayPaymentId,
+               message: 'Payment already captured',
+          };
+     }
+
+     if (paymentOrder.status !== 'CREATED') {
+          throw new AppError(`Payment order is in ${paymentOrder.status} status`, StatusCodes.CONFLICT);
+     }
+
+     const gateway = getGateway();
+
+     // Verify signature
+     const isValid = gateway.verifyPaymentSignature(
+          paymentOrder.gatewayOrderId,
+          gatewayPaymentId,
+          gatewaySignature
+     );
+
+     // Audit log the verification attempt
+     await prisma.paymentAuditLog.create({
+          data: {
+               paymentOrderId: paymentOrder.id,
+               action: isValid ? 'SIGNATURE_VERIFIED' : 'SIGNATURE_VERIFICATION_FAILED',
+               metadata: { gatewayPaymentId, isValid },
+          },
+     });
+
+     if (!isValid) {
+          await prisma.paymentOrder.update({
+               where: { id: paymentOrder.id },
+               data: {
+                    status: 'FAILED',
+                    failureReason: 'signature_verification_failed',
+                    version: { increment: 1 },
+               },
+          });
+
+          // Publish failure
+          await paymentProducer.publishPaymentFailed(
+               paymentOrder.id,
+               paymentOrder.bookingId,
+               'signature_verification_failed'
+          ).catch(err => {
+               logger.error('Failed to publish PAYMENT_FAILED after sig failure', { error: err.message });
+          });
+
+          throw new AppError('Payment signature verification failed, INVALID_SIGNATURE', StatusCodes.BAD_REQUEST);
+     }
+
+     // Signature valid — capture payment
+     await prisma.paymentOrder.update({
+          where: { id: paymentOrder.id },
+          data: {
+               status: 'CAPTURED',
+               gatewayPaymentId,
+               gatewaySignature,
+               version: { increment: 1 },
+          },
+     });
+
+     await prisma.paymentAuditLog.create({
+          data: {
+               paymentOrderId: paymentOrder.id,
+               action: 'PAYMENT_CAPTURED_VIA_VERIFY',
+               metadata: { gatewayPaymentId },
+          },
+     });
+
+     logger.info(`Payment captured via verify: ${paymentOrder.id}`);
+
+     // Publish PAYMENT_SUCCESS
+     await paymentProducer.publishPaymentSuccess(
+          paymentOrder.id,
+          paymentOrder.bookingId,
+          gatewayPaymentId,
+          paymentOrder.amount
+     ).catch(err => {
+          logger.error('Failed to publish PAYMENT_SUCCESS after verify', { error: err.message });
+     });
+
+     return {
+          paymentOrderId: paymentOrder.id,
+          status: 'CAPTURED',
+          gatewayPaymentId,
+     };
+};
+
 const paymentService = {
     createPaymentOrder,
-
+    verifyAndCapturePayment,
 }
 
 export default paymentService;
