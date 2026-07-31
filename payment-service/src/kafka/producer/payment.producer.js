@@ -5,7 +5,7 @@ import AppError from "../../utils/errors/appError.js"
 import { TOPICS } from "../../utils/constants.js";
 
 //Singleton design patter
-//connecting user-service to kafka server
+//connecting payment-service to kafka server
 
 class PaymentProducer {
     constructor() {

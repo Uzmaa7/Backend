@@ -121,6 +121,17 @@ router.get(
 );
 
 
+// ===========================
+// PAYMENT SERVICE ROUTES (webhook only - public)
+// ===========================
+const paymentServiceProxy = createProxy('paymentService', config.SERVICES.PAYMENT_SERVICE_URL);
+
+// Razorpay webhook (public — no auth, signature-verified by payment-service)
+router.post(
+     '/payments/webhooks/razorpay',
+     paymentServiceProxy
+);
+
 
 
 // Gateway Health Status

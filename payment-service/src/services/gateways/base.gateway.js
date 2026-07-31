@@ -23,6 +23,28 @@ class BaseGateway {
           throw new Error('createOrder() must be implemented by gateway');
      }
 
+
+     /**
+      * Verify a payment signature (client-side verification after checkout).
+      * @param {string} orderId - Gateway order ID
+      * @param {string} paymentId - Gateway payment ID
+      * @param {string} signature - Signature from client
+      * @returns {boolean}
+      */
+     verifyPaymentSignature(orderId, paymentId, signature) {
+          throw new Error('verifyPaymentSignature() must be implemented by gateway');
+     }
+
+     /**
+      * Verify a webhook signature from the gateway.
+      * @param {string|Buffer} rawBody - Raw request body
+      * @param {string} signature - Signature from webhook header
+      * @returns {boolean}
+      */
+     verifyWebhookSignature(rawBody, signature) {
+          throw new Error('verifyWebhookSignature() must be implemented by gateway');
+     }
+
      
 }
 

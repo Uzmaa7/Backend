@@ -20,6 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(reqLogger);
 app.use(corsMiddleware);
+// Skip JSON parsing for Razorpay webhook — signature verification needs raw bytes
+app.use((req, res, next) => {
+     if (req.path === '/api/payments/webhooks/razorpay') {
+          return express.raw({ type: 'application/json', limit: '10mb' })(req, res, next);
+     }
+     express.json({ limit: '10mb' })(req, res, next);
+});
 
 
 

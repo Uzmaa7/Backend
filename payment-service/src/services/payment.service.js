@@ -25,7 +25,6 @@ const withIdempotency = async (key, fn) => {
 
 
 // ─── Create Payment Order ────────────────────────────────────────────────────
-
 const createPaymentOrder = async (bookingId, amount, userId, idempotencyKey) => {
     if (!bookingId || !amount || !userId || !idempotencyKey) {
         throw new AppError('bookingId, amount, userId, and idempotencyKey are required', StatusCodes.BAD_REQUEST);
@@ -86,7 +85,6 @@ const createPaymentOrder = async (bookingId, amount, userId, idempotencyKey) => 
 }
 
 // ─── Verify and Capture (client-side verification) ───────────────────────────
-
 const verifyAndCapturePayment = async (paymentOrderId, gatewayPaymentId, gatewaySignature) => {
      if (!paymentOrderId || !gatewayPaymentId || !gatewaySignature) {
           throw new AppError('paymentOrderId, gatewayPaymentId, and gatewaySignature are required', StatusCodes.BAD_REQUEST);
@@ -192,9 +190,145 @@ const verifyAndCapturePayment = async (paymentOrderId, gatewayPaymentId, gateway
      };
 };
 
+
+// ─── Handle Webhook ──────────────────────────────────────────────────────────
+const handleWebhook = async (rawBody, signature) => {
+     const gateway = getGateway();
+
+     // Verify signature
+     const isValid = gateway.verifyWebhookSignature(rawBody, signature);
+     if (!isValid) {
+          logger.warn('Webhook signature verification failed');
+          throw new AppError('Invalid webhook signature, INVALID_SIGNATURE', StatusCodes.BAD_REQUEST);
+     }
+
+     const payload = typeof rawBody === 'string' ? JSON.parse(rawBody) : JSON.parse(rawBody.toString('utf8'));
+     const event = payload.event;
+     const paymentEntity = payload.payload?.payment?.entity;
+
+     if (!paymentEntity) {
+          logger.warn('Webhook payload missing payment entity', { event });
+          return { status: 'ignored', event };
+     }
+
+     const gatewayOrderId = paymentEntity.order_id;
+     const gatewayPaymentId = paymentEntity.id;
+
+     // Find payment order
+     const paymentOrder = await prisma.paymentOrder.findUnique({
+          where: { gatewayOrderId },
+     });
+
+     if (!paymentOrder) {
+          logger.warn(`Payment order not found for gateway order: ${gatewayOrderId}`);
+          return { status: 'ignored', reason: 'order_not_found' };
+     }
+
+     // Audit log the webhook
+     await prisma.paymentAuditLog.create({
+          data: {
+               paymentOrderId: paymentOrder.id,
+               action: `WEBHOOK_${event.toUpperCase().replace(/\./g, '_')}`,
+               gatewayResponse: payload,
+          },
+     });
+
+     if (event === 'payment.captured' || event === 'payment.authorized') {
+          return handlePaymentCaptured(paymentOrder, gatewayPaymentId, paymentEntity);
+     }
+
+     if (event === 'payment.failed') {
+          return handlePaymentFailed(paymentOrder, gatewayPaymentId, paymentEntity);
+     }
+
+     if (event === 'refund.processed' || event === 'refund.created') {
+          return handleRefundProcessed(paymentOrder, payload.payload?.refund?.entity);
+     }
+
+     logger.info(`Webhook event ignored: ${event}`);
+     return { status: 'ignored', event };
+};
+
+const handlePaymentCaptured = async (paymentOrder, gatewayPaymentId, paymentEntity) => {
+     // Idempotent: already captured
+     if (paymentOrder.status === 'CAPTURED') {
+          logger.info(`Payment already captured: ${paymentOrder.id}`);
+          return { status: 'already_processed' };
+     }
+
+     if (paymentOrder.status !== 'CREATED') {
+          logger.warn(`Cannot capture payment in status: ${paymentOrder.status}`, {
+               paymentOrderId: paymentOrder.id,
+          });
+          return { status: 'invalid_state', currentStatus: paymentOrder.status };
+     }
+
+     // Update payment order
+     await prisma.paymentOrder.update({
+          where: { id: paymentOrder.id },
+          data: {
+               status: 'CAPTURED',
+               gatewayPaymentId,
+               gatewaySignature: paymentEntity.acquirer_data?.auth_code || null,
+               version: { increment: 1 },
+          },
+     });
+
+     logger.info(`Payment captured: ${paymentOrder.id}`, { gatewayPaymentId });
+
+     // Publish PAYMENT_SUCCESS to Kafka
+     await paymentProducer.publishPaymentSuccess(
+          paymentOrder.id,
+          paymentOrder.bookingId,
+          gatewayPaymentId,
+          paymentOrder.amount
+     ).catch(err => {
+          logger.error('Failed to publish PAYMENT_SUCCESS', { error: err.message });
+     });
+
+     return { status: 'captured', paymentOrderId: paymentOrder.id };
+};
+
+const handlePaymentFailed = async (paymentOrder, gatewayPaymentId, paymentEntity) => {
+     // Idempotent: already failed
+     if (paymentOrder.status === 'FAILED') {
+          return { status: 'already_processed' };
+     }
+
+     if (paymentOrder.status !== 'CREATED') {
+          return { status: 'invalid_state', currentStatus: paymentOrder.status };
+     }
+
+     const reason = paymentEntity.error_description || paymentEntity.error_reason || 'payment_failed';
+
+     await prisma.paymentOrder.update({
+          where: { id: paymentOrder.id },
+          data: {
+               status: 'FAILED',
+               gatewayPaymentId,
+               failureReason: reason,
+               version: { increment: 1 },
+          },
+     });
+
+     logger.info(`Payment failed: ${paymentOrder.id}`, { reason });
+
+     // Publish PAYMENT_FAILED to Kafka
+     await paymentProducer.publishPaymentFailed(
+          paymentOrder.id,
+          paymentOrder.bookingId,
+          reason
+     ).catch(err => {
+          logger.error('Failed to publish PAYMENT_FAILED', { error: err.message });
+     });
+
+     return { status: 'failed', paymentOrderId: paymentOrder.id };
+};
+
 const paymentService = {
     createPaymentOrder,
     verifyAndCapturePayment,
+    handleWebhook
 }
 
 export default paymentService;

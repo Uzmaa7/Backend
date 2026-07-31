@@ -60,6 +60,23 @@ class RazorpayGateway extends BaseGateway {
           );
      }
 
+     verifyWebhookSignature(rawBody, signature) {
+          const body = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
+          const expectedSignature = crypto
+               .createHmac('sha256', this.webhookSecret)
+               .update(body)
+               .digest('hex');
+
+          try {
+               return crypto.timingSafeEqual(
+                    Buffer.from(expectedSignature, 'hex'),
+                    Buffer.from(signature, 'hex')
+               );
+          } catch {
+               return false;
+          }
+     }
+
 
 }
 
